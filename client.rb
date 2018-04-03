@@ -73,6 +73,15 @@ module SlackIRCGateway
           wc.on(:message) do |data|
             log{ data }
             channel = @channels.select{|x| x.id == data.channel}.first
+            text = data.text
+            text.scan(/<@.+?>/).each do |m|
+              id = m.split("@").last.split(">").first
+              user = @users.select{|x| x.id == id}.first
+              username = user.profile.display_name
+              username = user.profile.first_name if username == ''
+              username = user.profile.real_name if username == ''
+              text.sub!(m, "@#{username}")
+            end
             if channel
               if data.username
                 log{"@bot:#{data.username}##{channel.name}: #{data.text}"}
